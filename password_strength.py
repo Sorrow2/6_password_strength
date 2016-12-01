@@ -9,6 +9,22 @@ def load_wordlist_file(filepath):
     return wordlist_set
 
 
+def password_length_score(password):
+    password_length = len(password)
+    if password_length < 4:
+        return 0
+    elif password_length < 7:
+        return 1
+    elif password_length < 13:
+        return 2
+    else:
+        return 3
+
+
+def check_blacklist(password, wordlist):
+    return password in wordlist
+
+
 def check_upper_and_lower_case(password):
     return not password.islower() and not password.isupper()
 
@@ -21,47 +37,30 @@ def check_digits(password):
     return re.search('\d', password)
 
 
-def check_russian_and_english_letters(password):
-    return re.search('[a-z]', password, re.IGNORECASE) and re.search('[а-яё]', password, re.IGNORECASE)
-
-
-def check_date_and_plate_number(password):
+def check_date_and_plate_number_format(password):
     return re.match('\d+(января|февраля|марта|апреля|мая|июня|июля|августа|сентября|октября|ноября|декабря|rus|рус)',
-                    password, re.IGNORECASE)
+                    password, re.IGNORECASE) and re.match('\d{1,2}\.\d{1,2}\.\d{2,4}', password)
 
 
 def get_password_strength(password):
-    password_length = len(password)
+    score = password_length_score(password)
 
-    if password_length < 6:
-        return 0, 'Длина пароля слишком маленькая.'
+    if not check_blacklist(password, ru_en_wordlist):
+        score += 1
 
-    if password in most_common_passwords:
-        return 0, 'Этот пароль один из наиболее часто используемых.'
-
-    count = 1
-    if password_length > 10:
-        count += 1
-
-    if password not in ru_en_wordlist:
-        count += 1
-
-    if not check_date_and_plate_number(password):
-        count += 1
-
-    if check_upper_and_lower_case(password):
-        count += 1
+    if not check_date_and_plate_number_format(password):
+        score += 1
 
     if check_digits:
-        count += 1
+        score += 1
+
+    if check_upper_and_lower_case(password):
+        score += 2
 
     if check_special_characters(password):
-        count += 2
+        score += 2
 
-    if check_russian_and_english_letters(password):
-        count += 2
-
-    return count, ''
+    return score
 
 
 if __name__ == '__main__':
@@ -74,5 +73,8 @@ if __name__ == '__main__':
         if password in ('quit', 'exit'):
             print('Программа завершена.')
             break
-        score, msg = get_password_strength(password)
-        print('Сложность вашего пароля: {}/10. {}'.format(score, msg))
+        elif password in most_common_passwords:
+            print('Пароль небозопасен. Этот пароль один из наиболее часто используемых. Оценка: 0/10')
+            break
+
+        print('Оценка сложности вашего пароля: {}/10.'.format(get_password_strength(password)))
