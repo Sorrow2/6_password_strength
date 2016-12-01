@@ -75,6 +75,5 @@ if __name__ == '__main__':
             break
         elif password in most_common_passwords:
             print('Пароль небозопасен. Этот пароль один из наиболее часто используемых. Оценка: 0/10')
-            break
-
-        print('Оценка сложности вашего пароля: {}/10.'.format(get_password_strength(password)))
+        else:
+            print('Оценка сложности вашего пароля: {}/10.'.format(get_password_strength(password)))
