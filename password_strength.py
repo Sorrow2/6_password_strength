@@ -51,7 +51,7 @@ def get_password_strength(password):
     if not check_date_and_plate_number_format(password):
         score += 1
 
-    if check_digits:
+    if check_digits(password):
         score += 1
 
     if check_upper_and_lower_case(password):
